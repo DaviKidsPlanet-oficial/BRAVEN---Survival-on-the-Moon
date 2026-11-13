@@ -1,1 +1,5 @@
 pygame>=2.0.0
+os
+sys
+math
+random
