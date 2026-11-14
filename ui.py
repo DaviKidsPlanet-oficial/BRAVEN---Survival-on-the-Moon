@@ -1,37 +1,47 @@
 """Streamlit UI helpers for the Artemis Base Camp game.
 This module contains all the rendering logic, state initialisation and event handling.
-Images are loaded from local assets or directly from the GitHub 'images' branch.
+Images and audio are loaded from local folders or directly from GitHub.
 """
 import os
 import streamlit as st
 from simulation import LunarSimulation, TEXTS, POSSIBLE_ASSET_DIRS, POSSIBLE_SONG_DIRS
 
-# URL base do branch 'images' no GitHub do repositório
+# URLs base direta do GitHub
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com/DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon/images"
+GITHUB_SONGS_BASE = "https://raw.githubusercontent.com/DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon/main/songs"
 
 def locate_asset(filename: str) -> str:
-    """Busca primeiro nos diretórios locais de assets.
-    Se não encontrar e for imagem, retorna a URL do branch 'images' do GitHub.
+    """Busca primeiro nos diretórios locais de assets ou songs.
+    Se não encontrar, retorna a URL correspondente no GitHub.
     """
+    is_mp3 = filename.lower().endswith(".mp3")
+    
+    if is_mp3:
+        search_paths = [
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "songs"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets"),
+            r"C:\Users\Pichau\Desktop\Clube Nicolinha\space_outpost_game\songs",
+            r"C:\Users\Pichau\.gemini\antigravity\brain\b5c774e8-cb64-4879-b8f8-f3535b4adb02\streamlit_app\songs",
+        ]
+        for base in search_paths:
+            candidate = os.path.join(base, filename)
+            if os.path.exists(candidate):
+                return candidate
+        # Fallback para o GitHub se a pasta songs for enviada ao repositório
+        return f"{GITHUB_SONGS_BASE}/{filename}"
+
     search_paths = [
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets"),
         r"C:\Users\Pichau\Desktop\Clube Nicolinha\space_outpost_game\assets",
+        r"C:\Users\Pichau\.gemini\antigravity\brain\b5c774e8-cb64-4879-b8f8-f3535b4adb02\streamlit_app\assets",
         r"C:\Users\Pichau\.gemini\antigravity\brain\b5c774e8-cb64-4879-b8f8-f3535b4adb02",
-    ] if not filename.lower().endswith(".mp3") else [
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "songs"),
-        r"C:\Users\Pichau\Desktop\Clube Nicolinha\space_outpost_game\songs",
     ]
-
     for base in search_paths:
         candidate = os.path.join(base, filename)
         if os.path.exists(candidate):
             return candidate
 
-    # Se não encontrado localmente e for imagem, busca diretamente no GitHub (branch images)
-    if not filename.lower().endswith(".mp3"):
-        return f"{GITHUB_RAW_BASE}/{filename}"
-
-    return ""
+    return f"{GITHUB_RAW_BASE}/{filename}"
 
 def init_state():
     """Inicializa as variáveis de sessão no Streamlit."""
@@ -43,11 +53,11 @@ def init_state():
         st.session_state.game_state = "SELECT_LANG"
     if "music_enabled" not in st.session_state:
         st.session_state.music_enabled = False
-    if "playlist" not in st.session_state:
+    if not st.session_state.get("playlist"):
         playlist = []
         for name in ["song1.mp3", "song2.mp3", "song3.mp3"]:
             path = locate_asset(name)
-            if path and os.path.exists(path):
+            if path:
                 playlist.append(path)
         st.session_state.playlist = playlist
     if "current_song" not in st.session_state:
@@ -78,15 +88,23 @@ def render():
                 st.session_state.current_song = 0
             st.rerun()
 
-    # Reprodução de música quando ativada
-    if st.session_state.music_enabled and st.session_state.playlist:
-        song_path = st.session_state.playlist[st.session_state.current_song]
-        if os.path.exists(song_path):
-            with open(song_path, "rb") as f:
-                st.audio(f.read(), format="audio/mp3")
-            if st.button("⏭ Próxima Música // Next Song", key="next_song"):
-                st.session_state.current_song = (st.session_state.current_song + 1) % len(st.session_state.playlist)
-                st.rerun()
+    # Reprodução de áudio com Autoplay quando ativada
+    if st.session_state.music_enabled:
+        if st.session_state.playlist:
+            song_source = st.session_state.playlist[st.session_state.current_song]
+            col_audio, col_skip = st.columns([4, 1])
+            with col_audio:
+                if isinstance(song_source, str) and song_source.startswith("http"):
+                    st.audio(song_source, format="audio/mp3", autoplay=True, loop=True)
+                elif os.path.exists(song_source):
+                    with open(song_source, "rb") as f:
+                        st.audio(f.read(), format="audio/mp3", autoplay=True, loop=True)
+            with col_skip:
+                if st.button("⏭ Próxima // Next", key="next_song", use_container_width=True):
+                    st.session_state.current_song = (st.session_state.current_song + 1) % len(st.session_state.playlist)
+                    st.rerun()
+        else:
+            st.warning("⚠️ Nenhuma música (.mp3) encontrada. Certifique-se de que a pasta 'songs' com 'song1.mp3' e 'song2.mp3' está presente!")
 
     # Telas do Jogo
     if st.session_state.game_state == "SELECT_LANG":
@@ -141,7 +159,7 @@ def render_donki_intro():
     st.markdown("---")
 
 def render_gameplay():
-    """Tela principal do jogo com telemetria, ícones, cenário e ações."""
+    """Tela principal do jogo com telemetria, ícones ampliados, cenário e ações."""
     sim = st.session_state.sim
     lang = st.session_state.lang
 
@@ -160,7 +178,7 @@ def render_gameplay():
         if cme_url:
             st.image(cme_url, width=280)
 
-    # Painel de Telemetria com os ÍCONES REAIS DO JOGO
+    # Painel de Telemetria com os ÍCONES REAIS DO JOGO (85px)
     cols = st.columns(6)
     recursos = [
         ("icon_o2.png", TEXTS[lang]["res_o2"], f"{sim.oxigenio}%"),
@@ -175,14 +193,14 @@ def render_gameplay():
         with cols[i]:
             icon_url = locate_asset(icon_name)
             if icon_url:
-                st.image(icon_url, width=100)
+                st.image(icon_url, width=85)
             st.metric(nome_rec, val_rec)
 
     # Cenário Lunar Atual (bg_lunar, bunker_background ou rover_background)
     if st.session_state.bg_current:
         st.image(st.session_state.bg_current, use_container_width=True)
 
-    # Se o fundo for o padrão, mostramos as entidades da base (Bunker e Rover)
+    # Se o fundo for o padrão, mostramos as entidades da base
     bg_lunar_path = locate_asset("bg_lunar.png")
     if st.session_state.bg_current == bg_lunar_path:
         cb, cr = st.columns(2)
