@@ -175,7 +175,7 @@ def render_gameplay():
         with cols[i]:
             icon_url = locate_asset(icon_name)
             if icon_url:
-                st.image(icon_url, width=42)
+                st.image(icon_url, width=85)
             st.metric(nome_rec, val_rec)
 
     # Cenário Lunar Atual (bg_lunar, bunker_background ou rover_background)
@@ -196,11 +196,11 @@ def render_gameplay():
                 st.image(r_url, caption="Rover Artemis", width=180)
 
     # Barra de Feedback do Mascote Luna-Bot
-    col_mini, col_msg = st.columns([1, 10])
+    col_mini, col_msg = st.columns([1, 8])
     with col_mini:
         mini_mascot = locate_asset("mascot.png")
         if mini_mascot:
-            st.image(mini_mascot, width=50)
+            st.image(mini_mascot, width=70)
     with col_msg:
         if "ALERTA" in st.session_state.feedback_msg:
             st.error(st.session_state.feedback_msg)
