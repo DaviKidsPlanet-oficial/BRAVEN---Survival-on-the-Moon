@@ -175,7 +175,7 @@ def render_gameplay():
         with cols[i]:
             icon_url = locate_asset(icon_name)
             if icon_url:
-                st.image(icon_url, width=85)
+                st.image(icon_url, width=100)
             st.metric(nome_rec, val_rec)
 
     # Cenário Lunar Atual (bg_lunar, bunker_background ou rover_background)
