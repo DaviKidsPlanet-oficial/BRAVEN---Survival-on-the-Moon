@@ -1,8 +1,9 @@
 """Streamlit UI helpers for the Artemis Base Camp game.
 This module contains all the rendering logic, state initialisation and event handling.
-Images and audio are loaded from local folders or directly from GitHub.
+Images are loaded from local assets or directly from the GitHub 'images' branch.
 """
 import os
+import urllib.request
 import streamlit as st
 from simulation import LunarSimulation, TEXTS, POSSIBLE_ASSET_DIRS, POSSIBLE_SONG_DIRS
 
@@ -10,9 +11,19 @@ from simulation import LunarSimulation, TEXTS, POSSIBLE_ASSET_DIRS, POSSIBLE_SON
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com/DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon/images"
 GITHUB_SONGS_BASE = "https://raw.githubusercontent.com/DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon/main/songs"
 
+@st.cache_data(ttl=60)
+def check_url_exists(url: str) -> bool:
+    """Verifica rapidamente se uma URL remota existe e responde 200 OK."""
+    try:
+        req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
 def locate_asset(filename: str) -> str:
     """Busca primeiro nos diretórios locais de assets ou songs.
-    Se não encontrar, retorna a URL correspondente no GitHub.
+    Se não encontrar, verifica se o arquivo existe no GitHub antes de retornar a URL.
     """
     is_mp3 = filename.lower().endswith(".mp3")
     
@@ -27,8 +38,18 @@ def locate_asset(filename: str) -> str:
             candidate = os.path.join(base, filename)
             if os.path.exists(candidate):
                 return candidate
-        # Fallback para o GitHub se a pasta songs for enviada ao repositório
-        return f"{GITHUB_SONGS_BASE}/{filename}"
+
+        # Verifica se o arquivo de música já foi enviado ao GitHub
+        candidates_url = [
+            f"https://raw.githubusercontent.com/DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon/main/songs/{filename}",
+            f"https://raw.githubusercontent.com/DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon/images/{filename}",
+            f"https://raw.githubusercontent.com/DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon/main/{filename}",
+        ]
+        for url in candidates_url:
+            if check_url_exists(url):
+                return url
+
+        return ""
 
     search_paths = [
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets"),
@@ -88,7 +109,7 @@ def render():
                 st.session_state.current_song = 0
             st.rerun()
 
-    # Reprodução de áudio com Autoplay quando ativada
+    # Reprodução de música quando ativada
     if st.session_state.music_enabled:
         if st.session_state.playlist:
             song_source = st.session_state.playlist[st.session_state.current_song]
@@ -104,7 +125,11 @@ def render():
                     st.session_state.current_song = (st.session_state.current_song + 1) % len(st.session_state.playlist)
                     st.rerun()
         else:
-            st.warning("⚠️ Nenhuma música (.mp3) encontrada. Certifique-se de que a pasta 'songs' com 'song1.mp3' e 'song2.mp3' está presente!")
+            st.warning(
+                "⚠️ **Músicas não encontradas na nuvem (GitHub)**: Os arquivos `song1.mp3` e `song2.mp3` ainda não foram enviados para o repositório!\n\n"
+                "📁 Eles estão salvos no seu computador em: `C:\\Users\\Pichau\\Desktop\\Clube Nicolinha\\space_outpost_game\\songs`\n\n"
+                "👉 Basta fazer upload deles no repositório (`DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon`) para tocar automaticamente!"
+            )
 
     # Telas do Jogo
     if st.session_state.game_state == "SELECT_LANG":
@@ -159,7 +184,7 @@ def render_donki_intro():
     st.markdown("---")
 
 def render_gameplay():
-    """Tela principal do jogo com telemetria, ícones ampliados, cenário e ações."""
+    """Tela principal do jogo com telemetria, ícones, cenário e ações."""
     sim = st.session_state.sim
     lang = st.session_state.lang
 
@@ -178,7 +203,7 @@ def render_gameplay():
         if cme_url:
             st.image(cme_url, width=280)
 
-    # Painel de Telemetria com os ÍCONES REAIS DO JOGO (85px)
+    # Painel de Telemetria com os ÍCONES REAIS DO JOGO
     cols = st.columns(6)
     recursos = [
         ("icon_o2.png", TEXTS[lang]["res_o2"], f"{sim.oxigenio}%"),
@@ -200,7 +225,7 @@ def render_gameplay():
     if st.session_state.bg_current:
         st.image(st.session_state.bg_current, use_container_width=True)
 
-    # Se o fundo for o padrão, mostramos as entidades da base
+    # Se o fundo for o padrão, mostramos as entidades da base (Bunker e Rover)
     bg_lunar_path = locate_asset("bg_lunar.png")
     if st.session_state.bg_current == bg_lunar_path:
         cb, cr = st.columns(2)
