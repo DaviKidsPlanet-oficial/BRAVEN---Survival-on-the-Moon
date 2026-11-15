@@ -5,7 +5,7 @@ Run with:
 import streamlit as st
 from ui import init_state, render
 
-st.set_page_config(page_title="Artemis Base Camp", layout="wide")
+st.set_page_config(page_title="BRAVEN: Survival on the Moon", layout="wide")
 
 # Initialise or restore session state variables
 init_state()
