@@ -69,9 +69,9 @@ def init_state():
     if "sim" not in st.session_state:
         st.session_state.sim = LunarSimulation()
     if "lang" not in st.session_state:
-        st.session_state.lang = "pt"
+        st.session_state.lang = "en"
     if "game_state" not in st.session_state:
-        st.session_state.game_state = "SELECT_LANG"
+        st.session_state.game_state = "INTRO_DONKI"
     if "music_enabled" not in st.session_state:
         st.session_state.music_enabled = False
     if not st.session_state.get("playlist"):
@@ -86,22 +86,17 @@ def init_state():
     if "bg_current" not in st.session_state:
         st.session_state.bg_current = locate_asset("bg_lunar.png")
     if "feedback_msg" not in st.session_state:
-        st.session_state.feedback_msg = "[STATUS]: Base operacional! Selecione uma ordem diária, Comandante."
+        st.session_state.feedback_msg = "[STATUS]: Base operational! Select today's operations plan, Commander."
 
 def render():
     """Renderiza a interface conforme o estado atual."""
-    # Topo: Banner da Missão à esquerda e Controles (Idioma / Música) à direita
-    col_banner, col_ctrl1, col_ctrl2 = st.columns([3, 1, 1])
+    # Topo: Banner da Missão à esquerda e Controle de Música à direita
+    col_banner, col_ctrl = st.columns([4, 1])
     with col_banner:
         banner_url = locate_asset("banner_mission.png")
         if banner_url:
             st.image(banner_url, width=320)
-    with col_ctrl1:
-        if st.button(TEXTS[st.session_state.lang]["btn_lang"], key="lang_toggle", use_container_width=True):
-            st.session_state.lang = "en" if st.session_state.lang == "pt" else "pt"
-            st.session_state.sim.evento_clima = st.session_state.sim.sortear_clima(st.session_state.lang)
-            st.rerun()
-    with col_ctrl2:
+    with col_ctrl:
         label_musica = TEXTS[st.session_state.lang]["btn_music_on"] if st.session_state.music_enabled else TEXTS[st.session_state.lang]["btn_music_off"]
         if st.button(label_musica, key="music_toggle", use_container_width=True):
             st.session_state.music_enabled = not st.session_state.music_enabled
@@ -121,25 +116,26 @@ def render():
                     with open(song_source, "rb") as f:
                         st.audio(f.read(), format="audio/mp3", autoplay=True, loop=True)
             with col_skip:
-                if st.button("⏭ Próxima // Next", key="next_song", use_container_width=True):
+                if st.button("⏭ Next Track", key="next_song", use_container_width=True):
                     st.session_state.current_song = (st.session_state.current_song + 1) % len(st.session_state.playlist)
                     st.rerun()
         else:
             st.warning(
-                "⚠️ **Músicas não encontradas na nuvem (GitHub)**: Os arquivos `song1.mp3` e `song2.mp3` ainda não foram enviados para o repositório!\n\n"
-                "📁 Eles estão salvos no seu computador em: `C:\\Users\\Pichau\\Desktop\\Clube Nicolinha\\space_outpost_game\\songs`\n\n"
-                "👉 Basta fazer upload deles no repositório (`DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon`) para tocar automaticamente!"
+                "⚠️ **Music files not found in cloud repository (GitHub)**: `song1.mp3`, `song2.mp3` or `song3.mp3` have not been uploaded to the repository yet!\n\n"
+                "📁 Local directory: `C:\\Users\\Pichau\\Desktop\\Clube Nicolinha\\space_outpost_game\\songs`\n\n"
+                "👉 Upload them to your repository (`DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon`) to stream them automatically!"
             )
 
     # Telas do Jogo
-    if st.session_state.game_state == "SELECT_LANG":
-        render_lang_select()
-    elif st.session_state.game_state == "INTRO_DONKI":
+    if st.session_state.game_state == "INTRO_DONKI":
         render_donki_intro()
     elif st.session_state.game_state == "PLAYING":
         render_gameplay()
     elif st.session_state.game_state in ("FAIL_O2", "FAIL_RAD", "VICTORY"):
         render_modal()
+    else:
+        st.session_state.game_state = "INTRO_DONKI"
+        st.rerun()
 
 def render_lang_select():
     """Tela de Seleção de Idioma."""
@@ -232,11 +228,11 @@ def render_gameplay():
         with cb:
             b_url = locate_asset("bunker.png")
             if b_url:
-                st.image(b_url, caption="Bunker de Regolito", width=180)
+                st.image(b_url, caption="Regolith Bunker", width=180)
         with cr:
             r_url = locate_asset("rover.png")
             if r_url:
-                st.image(r_url, caption="Rover Artemis", width=180)
+                st.image(r_url, caption="Artemis Rover", width=180)
 
     # Barra de Feedback do Mascote Luna-Bot
     col_mini, col_msg = st.columns([1, 8])
@@ -245,7 +241,7 @@ def render_gameplay():
         if mini_mascot:
             st.image(mini_mascot, width=70)
     with col_msg:
-        if "ALERTA" in st.session_state.feedback_msg:
+        if "ALERT" in st.session_state.feedback_msg or "ALERTA" in st.session_state.feedback_msg:
             st.error(st.session_state.feedback_msg)
         else:
             st.info(st.session_state.feedback_msg)
@@ -303,5 +299,5 @@ def render_modal():
         st.session_state.sim.reset()
         st.session_state.bg_current = locate_asset("bg_lunar.png")
         st.session_state.game_state = "PLAYING"
-        st.session_state.feedback_msg = "[STATUS]: Missão reiniciada! Prepare a base, Comandante."
+        st.session_state.feedback_msg = "[STATUS]: Mission restarted! Prepare the base, Commander."
         st.rerun()
