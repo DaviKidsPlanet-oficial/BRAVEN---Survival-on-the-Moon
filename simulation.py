@@ -74,7 +74,7 @@ TEXTS = {
         "opt2_title": "2. Regolith Shelter",
         "opt2_desc": "Underground Bunker (-90% Radiation, Immune to CME)",
         "opt3_title": "3. Rover Ice Mission",
-        "opt3_desc": "+35 Science | +15% Ice | Minimal O2 (+4%)",
+        "opt3_desc": "+10 Science | +15% Ice | Minimal O2 (-8%)",
         "feedback_opt1": "[OK] Breathable oxygen extracted from lunar soil! (+25% O2)",
         "feedback_opt2": "[OK] Crew secured safely inside the regolith bunker!",
         "feedback_opt3": "[OK] Rover harvested primordial ice in dark craters!",
@@ -150,7 +150,7 @@ class LunarSimulation:
             feedback = TEXTS[lang]["feedback_opt2"]
         elif escolha == 3:
             # Nerfed rover expedition (harder)
-            self.oxigenio = max(0, self.oxigenio - ((8/100) * self.oxigenio))  # slight loss instead of gain
+            self.oxigenio = max(0, self.oxigenio - round((8/100) * self.oxigenio))  # slight loss instead of gain
             self.gelo = min(100, self.gelo + 5)
             self.ciencia += 10
             feedback = TEXTS[lang]["feedback_opt3"]
