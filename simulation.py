@@ -33,7 +33,7 @@ TEXTS = {
         "opt2_title": "2. Abrigo Subterrâneo",
         "opt2_desc": "Bunker de Regolito (-90% Radiação, Imune a CME)",
         "opt3_title": "3. Expedição Rover",
-        "opt3_desc": "+15 Ciência | +15% Gelo | Pouco O2 (-4%)",
+        "opt3_desc": "+10 Ciência | +15% Gelo | Pouco O2 (-8%)",
         "feedback_opt1": "[OK] Oxigênio extraído do solo lunar com sucesso! (+25% O2)",
         "feedback_opt2": "[OK] Tripulação segura no abrigo subterrâneo de regolito!",
         "feedback_opt3": "[OK] Rover coletou amostras valiosas nas crateras escuras!",
@@ -150,9 +150,9 @@ class LunarSimulation:
             feedback = TEXTS[lang]["feedback_opt2"]
         elif escolha == 3:
             # Nerfed rover expedition (harder)
-            self.oxigenio = max(0, self.oxigenio - ((4/100) * self.oxigenio))  # slight loss instead of gain
+            self.oxigenio = max(0, self.oxigenio - ((8/100) * self.oxigenio))  # slight loss instead of gain
             self.gelo = min(100, self.gelo + 5)
-            self.ciencia += 15
+            self.ciencia += 10
             feedback = TEXTS[lang]["feedback_opt3"]
 
         dose_uSv = self.evento_clima["radiacao_uSv"]
