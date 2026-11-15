@@ -90,12 +90,29 @@ def init_state():
 
 def render():
     """Renderiza a interface conforme o estado atual."""
+    # CSS para otimizar espaço vertical e eliminar necessidade de scroll
+    st.markdown("""
+        <style>
+        .block-container {
+            padding-top: 1.2rem !important;
+            padding-bottom: 1.5rem !important;
+            max-width: 1050px !important;
+        }
+        div[data-testid="stMetricValue"] {
+            font-size: 1.25rem !important;
+        }
+        div[data-testid="stMetricLabel"] {
+            font-size: 0.85rem !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     # Topo: Banner da Missão à esquerda e Controle de Música à direita
     col_banner, col_ctrl = st.columns([4, 1])
     with col_banner:
         banner_url = locate_asset("banner_mission.png")
         if banner_url:
-            st.image(banner_url, width=320)
+            st.image(banner_url, width=260)
     with col_ctrl:
         label_musica = TEXTS[st.session_state.lang]["btn_music_on"] if st.session_state.music_enabled else TEXTS[st.session_state.lang]["btn_music_off"]
         if st.button(label_musica, key="music_toggle", use_container_width=True):
@@ -162,7 +179,7 @@ def render_donki_intro():
     with col_img:
         mascot_url = locate_asset("mascot.png")
         if mascot_url:
-            st.image(mascot_url, caption="Luna-Bot (LB-01)", use_container_width=True)
+            st.image(mascot_url, caption="Luna-Bot (LB-01)", width=240)
     with col_text:
         st.subheader(TEXTS[st.session_state.lang]["intro_greeting"])
         linhas = [
@@ -197,7 +214,7 @@ def render_gameplay():
     if clima.get("is_cme", False):
         cme_url = locate_asset("alert_cme.png")
         if cme_url:
-            st.image(cme_url, width=280)
+            st.image(cme_url, width=220)
 
     # Painel de Telemetria com os ÍCONES REAIS DO JOGO
     cols = st.columns(6)
@@ -214,25 +231,14 @@ def render_gameplay():
         with cols[i]:
             icon_url = locate_asset(icon_name)
             if icon_url:
-                st.image(icon_url, width=85)
+                st.image(icon_url, width=65)
             st.metric(nome_rec, val_rec)
 
-    # Cenário Lunar Atual (bg_lunar, bunker_background ou rover_background)
-    if st.session_state.bg_current:
-        st.image(st.session_state.bg_current, use_container_width=True)
-
-    # Se o fundo for o padrão, mostramos as entidades da base (Bunker e Rover)
-    bg_lunar_path = locate_asset("bg_lunar.png")
-    if st.session_state.bg_current == bg_lunar_path:
-        cb, cr = st.columns(2)
-        with cb:
-            b_url = locate_asset("bunker.png")
-            if b_url:
-                st.image(b_url, caption="Regolith Bunker", width=180)
-        with cr:
-            r_url = locate_asset("rover.png")
-            if r_url:
-                st.image(r_url, caption="Artemis Rover", width=180)
+    # Cenário Lunar Atual (dimensões compactas e centralizadas para caber sem scroll)
+    col_sp1, col_bg, col_sp2 = st.columns([1, 2.2, 1])
+    with col_bg:
+        if st.session_state.bg_current:
+            st.image(st.session_state.bg_current, use_container_width=True)
 
     # Barra de Feedback do Mascote Luna-Bot
     col_mini, col_msg = st.columns([1, 8])
