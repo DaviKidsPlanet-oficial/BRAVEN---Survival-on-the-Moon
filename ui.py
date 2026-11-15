@@ -107,12 +107,20 @@ def render():
         </style>
     """, unsafe_allow_html=True)
 
-    # Topo: Banner da Missão à esquerda e Botão de Música no lado oposto (à direita)
-    col_banner, col_ctrl = st.columns([3, 1], vertical_alignment="center")
+    # Topo: Banner da Missão à esquerda, Alerta CME no meio (se ativo), Botão de Música à direita
+    sim = st.session_state.get("sim")
+    is_cme = sim.evento_clima.get("is_cme", False) if (sim and hasattr(sim, "evento_clima")) else False
+
+    col_banner, col_cme, col_ctrl = st.columns([2.5, 2.5, 1.2], vertical_alignment="center")
     with col_banner:
         banner_url = locate_asset("banner_mission.png")
         if banner_url:
-            st.image(banner_url, width=260)
+            st.image(banner_url, width=250)
+    with col_cme:
+        if is_cme and st.session_state.game_state == "PLAYING":
+            cme_url = locate_asset("alert_cme.png")
+            if cme_url:
+                st.image(cme_url, width=160)
     with col_ctrl:
         label_musica = TEXTS[st.session_state.lang]["btn_music_on"] if st.session_state.music_enabled else TEXTS[st.session_state.lang]["btn_music_off"]
         if st.button(label_musica, key="music_toggle", use_container_width=True):
@@ -193,12 +201,6 @@ def render_gameplay():
         f"### 🚀 {TEXTS[lang]['day']} {sim.dia} &nbsp;&nbsp;|&nbsp;&nbsp; "
         f"{cor_clima} **{TEXTS[lang]['weather_label']}** {clima['tipo']} ({clima['classe']}) — {clima['radiacao_uSv']} µSv/h"
     )
-
-    # Alerta visual de CME se ativo
-    if clima.get("is_cme", False):
-        cme_url = locate_asset("alert_cme.png")
-        if cme_url:
-            st.image(cme_url, width=220)
 
     # Painel de Telemetria com os ÍCONES REAIS DO JOGO
     cols = st.columns(6)
