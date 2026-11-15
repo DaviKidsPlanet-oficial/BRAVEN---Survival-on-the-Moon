@@ -107,30 +107,13 @@ def render():
         </style>
     """, unsafe_allow_html=True)
 
-    # Topo: Banner da Missão
-    banner_url = locate_asset("banner_mission.png")
-    if banner_url:
-        st.image(banner_url, width=260)
-
-    # Telas do Jogo
-    if st.session_state.game_state == "INTRO_DONKI":
-        render_donki_intro()
-    elif st.session_state.game_state == "PLAYING":
-        render_gameplay()
-    elif st.session_state.game_state in ("FAIL_O2", "FAIL_RAD", "VICTORY"):
-        render_modal()
-    else:
-        st.session_state.game_state = "INTRO_DONKI"
-        st.rerun()
-
-    # Controles de Áudio (posicionados na parte inferior, centralizados e sempre visíveis)
-    render_music_controls()
-
-def render_music_controls():
-    """Controles de áudio posicionados na parte inferior da tela."""
-    st.markdown("---")
-    col_sp1, col_btn, col_sp2 = st.columns([1.5, 1, 1.5])
-    with col_btn:
+    # Topo: Banner da Missão à esquerda e Botão de Música no lado oposto (à direita)
+    col_banner, col_ctrl = st.columns([3, 1], vertical_alignment="center")
+    with col_banner:
+        banner_url = locate_asset("banner_mission.png")
+        if banner_url:
+            st.image(banner_url, width=260)
+    with col_ctrl:
         label_musica = TEXTS[st.session_state.lang]["btn_music_on"] if st.session_state.music_enabled else TEXTS[st.session_state.lang]["btn_music_off"]
         if st.button(label_musica, key="music_toggle", use_container_width=True):
             st.session_state.music_enabled = not st.session_state.music_enabled
@@ -138,10 +121,11 @@ def render_music_controls():
                 st.session_state.current_song = 0
             st.rerun()
 
+    # Reprodução de música quando ativada (barra compacta logo abaixo do cabeçalho)
     if st.session_state.music_enabled:
         if st.session_state.playlist:
             song_source = st.session_state.playlist[st.session_state.current_song]
-            col_sp_a, col_audio, col_skip, col_sp_b = st.columns([0.5, 3, 1, 0.5])
+            col_audio, col_skip = st.columns([4, 1], vertical_alignment="center")
             with col_audio:
                 if isinstance(song_source, str) and song_source.startswith("http"):
                     st.audio(song_source, format="audio/mp3", autoplay=True, loop=True)
@@ -158,6 +142,17 @@ def render_music_controls():
                 "📁 Local directory: `C:\\Users\\Pichau\\Desktop\\Clube Nicolinha\\space_outpost_game\\songs`\n\n"
                 "👉 Upload them to your repository (`DaviKidsPlanet-oficial/BRAVEN---Survival-on-the-Moon`) to stream them automatically!"
             )
+
+    # Telas do Jogo
+    if st.session_state.game_state == "INTRO_DONKI":
+        render_donki_intro()
+    elif st.session_state.game_state == "PLAYING":
+        render_gameplay()
+    elif st.session_state.game_state in ("FAIL_O2", "FAIL_RAD", "VICTORY"):
+        render_modal()
+    else:
+        st.session_state.game_state = "INTRO_DONKI"
+        st.rerun()
 
 
 
