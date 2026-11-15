@@ -33,7 +33,7 @@ TEXTS = {
         "opt2_title": "2. Abrigo Subterrâneo",
         "opt2_desc": "Bunker de Regolito (-90% Radiação, Imune a CME)",
         "opt3_title": "3. Expedição Rover",
-        "opt3_desc": "+10 Ciência | +15% Gelo | Pouco O2 (-8%)",
+        "opt3_desc": "+15 Ciência | +15% Gelo | Pouco O2 (-8%)",
         "feedback_opt1": "[OK] Oxigênio extraído do solo lunar com sucesso! (+25% O2)",
         "feedback_opt2": "[OK] Tripulação segura no abrigo subterrâneo de regolito!",
         "feedback_opt3": "[OK] Rover coletou amostras valiosas nas crateras escuras!",
@@ -74,7 +74,7 @@ TEXTS = {
         "opt2_title": "2. Regolith Shelter",
         "opt2_desc": "Underground Bunker (-90% Radiation, Immune to CME)",
         "opt3_title": "3. Rover Ice Mission",
-        "opt3_desc": "+10 Science | +15% Ice | Minimal O2 (-8%)",
+        "opt3_desc": "+15 Science | +15% Ice | Minimal O2 (-8%)",
         "feedback_opt1": "[OK] Breathable oxygen extracted from lunar soil! (+25% O2)",
         "feedback_opt2": "[OK] Crew secured safely inside the regolith bunker!",
         "feedback_opt3": "[OK] Rover harvested primordial ice in dark craters!",
@@ -152,7 +152,7 @@ class LunarSimulation:
             # Nerfed rover expedition (harder)
             self.oxigenio = max(0, self.oxigenio - round((8/100) * self.oxigenio))  # slight loss instead of gain
             self.gelo = min(100, self.gelo + 5)
-            self.ciencia += 10
+            self.ciencia += 15
             feedback = TEXTS[lang]["feedback_opt3"]
 
         dose_uSv = self.evento_clima["radiacao_uSv"]
